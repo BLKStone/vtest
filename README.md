@@ -21,4 +21,28 @@ VTestNG 是 VTest 的魔改版本。
 
 6 修改数据库结构
 
+7 新增 API 路由
+
+## 调试指南
+
+
+### mock 
+
+`curl -v http://your_ip/mock/demo1`
+
+### httplog
+
+`curl -v http://your_ip/httplog/{custome_message}`
+`curl -v http://45.76.125.91/httplog/test`
+
+### api
+
+
+```
+curl -v http://45.76.125.91/api/dns/generate
+nslookup 2cka9ei4ls.alida.club
+curl -v http://45.76.125.91/api/dns/query/2cka9ei4ls
+```
+
+
 

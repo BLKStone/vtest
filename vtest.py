@@ -18,6 +18,8 @@ import getopt
 from vtestng_config import VTestNGConfig
 import pprint
 import sys
+import string
+import random
 
 
 
@@ -83,16 +85,6 @@ class sqlite:
         )
         ''')
 
-
-        # create table dns_log
-        # (
-        #     id          INTEGER
-        #         primary key autoincrement,
-        #     name        text,
-        #     domain      text,
-        #     ip          text,
-        #     insert_time datetime
-        # );
 
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS dns_log(
@@ -431,6 +423,38 @@ def xss_list():
     rows = DB.exec_sql(sql)
     total = rows[0][0]
     return jsonify({'total': int(total), 'rows': result})
+
+
+######################################################################
+# API
+######################################################################
+
+# 对外开放的 API
+# 无需 HTTP AUTH 认证
+@app.route('/api/dns/query/<name>')
+def dnslog_api(name):
+    # SELECT domain,resolve_ip,remote_ip,insert_time FROM dns_log WHERE domain LIKE "0x%";
+    query_condition = name + '%'
+    sql = "SELECT domain,resolve_ip,remote_ip,insert_time FROM dns_log WHERE domain LIKE ? ORDER BY id DESC LIMIT 10"
+    rows = DB.exec_sql(sql, query_condition)
+    result_length = len(rows)
+
+    # return "length: {length}\r\n".format(length=result_length)
+
+    if result_length > 0:
+        response_json = {'status': 'success', 'result': rows}
+        return jsonify(response_json)
+    else:
+        response_json = {'status': 'failure', 'result': rows}
+        return jsonify(response_json)
+
+@app.route('/api/dns/generate')
+def dnslog_generate_random_domain():
+    probe_domain = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+    probe_domain = probe_domain + '.' + ROOT_DOMAIN
+    response_json = {'random_domain': probe_domain}
+    return jsonify(response_json)
+
 
 
 def dns():
