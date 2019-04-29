@@ -5,6 +5,8 @@
 VTestNG 是 VTest 的魔改版本。
 
 
+
+
 改动如下：
 
 1 重新组织整理项目目录结构
@@ -17,5 +19,6 @@ VTestNG 是 VTest 的魔改版本。
 
 5 配置文件统一管理 vtestng_config.py
 
+6 修改数据库结构
 
 

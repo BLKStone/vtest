@@ -10,10 +10,7 @@
 
 class VTestNGConfig(object):
     sqlite_path = 'db/vtest.db'
-
     main_template_path = 'templates/main_page.html'
-
-
 
     def __init__(self):
         pass

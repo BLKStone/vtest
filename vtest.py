@@ -213,10 +213,12 @@ class DNSUDPHandler(SocketServer.BaseRequestHandler):
                     ip = ip_1
             if ROOT_DOMAIN in domain:
                 name = domain.replace('.' + ROOT_DOMAIN, '')
-                sql = "INSERT INTO dns_log (name,domain,ip,insert_time) " \
-                      "VALUES(?, ?, ?, datetime(CURRENT_TIMESTAMP,'localtime'))"
+                client_ip = self.client_address[0]
 
-                DB.exec_sql(sql, name, domain, ip)
+                sql = "INSERT INTO dns_log (name,domain,remote_ip,resolve_ip,insert_time) " \
+                      "VALUES(?, ?, ?, ?, datetime(CURRENT_TIMESTAMP,'localtime'))"
+
+                DB.exec_sql(sql, name, domain, client_ip,ip)
             dns.set_ip(ip)
 
 
@@ -258,17 +260,18 @@ def dns_list():
     args = request.values
     offset = int(args.get('offset', 0))
     limit = int(args.get('limit', 10))
-    sql = "SELECT domain,ip,insert_time FROM dns_log order by id desc limit {skip},{limit}".format(
+    sql = "SELECT domain,resolve_ip,remote_ip,insert_time FROM dns_log order by id desc limit {skip},{limit}".format(
         skip=offset, limit=limit)
     rows = DB.exec_sql(sql)
     for v in rows:
-        result.append({"domain": v[0], "ip": v[1], "insert_time": v[2]})
+        result.append({"domain": v[0], "resolve_ip": v[1], "remote_ip": v[2] , "insert_time": v[3]})
     sql = "SELECT COUNT(*) FROM dns_log"
     rows = DB.exec_sql(sql)
     total = rows[0][0]
     return jsonify({'total': int(total), 'rows': result})
 
 
+# 记录 HTTP log
 @app.route('/httplog/<str>', methods=['GET', 'POST', 'PUT'])
 def http_log(str):
 
@@ -287,6 +290,7 @@ def http_log(str):
     return 'success'
 
 
+# 查看 HTTP log
 @app.route('/httplog')
 @auth.login_required
 def http_log_list():
