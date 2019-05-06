@@ -183,9 +183,9 @@ class DNSUDPHandler(SocketServer.BaseRequestHandler):
         if (dns.query_type == 1):
             domain = dns.get_query_domain()
             print("DNS QUERY DOMAIN: {domain}".format(domain=domain))
-            print(a_map)
 
-            ip = '127.0.0.1'
+            ip = VTestNGConfig.default_resolve_ip
+
             if domain in a_map:
                 # 自定义的dns记录，保留着
                 ip = a_map[domain]
@@ -431,6 +431,8 @@ def xss_list():
 
 # 对外开放的 API
 # 无需 HTTP AUTH 认证
+
+# 查询某个域名，在数据库中是否有记录。
 @app.route('/api/dns/query/<name>')
 def dnslog_api(name):
     # SELECT domain,resolve_ip,remote_ip,insert_time FROM dns_log WHERE domain LIKE "0x%";
@@ -448,9 +450,12 @@ def dnslog_api(name):
         response_json = {'status': 'failure', 'result': rows}
         return jsonify(response_json)
 
+# 生成一个随机域名
 @app.route('/api/dns/generate')
 def dnslog_generate_random_domain():
-    probe_domain = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10))
+
+    domain_length = VTestNGConfig.dns_probe_domain_length
+    probe_domain = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(domain_length))
     probe_domain = probe_domain + '.' + ROOT_DOMAIN
     response_json = {'random_domain': probe_domain}
     return jsonify(response_json)
@@ -463,7 +468,7 @@ def dns():
     # 添加自己设置的 DNS 的 A 记录
     suffix = '.' + ROOT_DOMAIN
     d.add_record('httplog' + suffix, LOCAL_IP)
-    d.add_record('x' + '.' + suffix, LOCAL_IP)
+    d.add_record('x' + suffix, LOCAL_IP)
     d.add_record('mock' + suffix, LOCAL_IP)
     d.start()
 
